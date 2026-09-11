@@ -13,13 +13,33 @@
 
 ## 安裝
 
+### 下載執行檔（不需要 Go）
+
+把 `darwin_arm64` 換成你的平台：`darwin_amd64`、`linux_amd64`、`linux_arm64`、`windows_amd64.exe`、`windows_arm64.exe`。
+這個網址永遠指向最新版：
+
+```bash
+curl -L -o cfl https://github.com/truthatt11/confluence-cli/releases/latest/download/cfl_darwin_arm64 && chmod +x cfl
+```
+
+下載後用 `./cfl --version` 確認版本。每個 release 附有 `checksums.txt`，可以驗證檔案完整性：
+
+```bash
+sha256sum -c checksums.txt --ignore-missing
+```
+
+> **macOS 使用瀏覽器下載時**：未簽章的執行檔會被標記為隔離，第一次執行會被 Gatekeeper 擋下。
+> 用上面的 `curl` 指令不會有這個問題；若已經被擋，執行 `xattr -d com.apple.quarantine ./cfl` 即可。
+
+### 用 Go 安裝
+
 需要 Go 1.24 以上：
 
 ```bash
 go install github.com/truthatt11/confluence-cli/cmd/cfl@latest
 ```
 
-或從原始碼建置：
+### 從原始碼建置
 
 ```bash
 make build    # 產生 bin/cfl
@@ -178,6 +198,19 @@ make test     # go vet + go test -race
 make cover    # 覆蓋率
 go test ./internal/convert -update   # 有意修改轉換輸出後，重新產生 golden 檔，並檢查 diff
 ```
+
+push 到 `main` 和開 PR 時，GitHub Actions 會執行 `make test` 與 `make dist`（[ci.yml](.github/workflows/ci.yml)）。
+
+### 發布新版本
+
+推一個 `v` 開頭的 tag 就會自動發布（[release.yml](.github/workflows/release.yml)）：測試通過後建置六個平台的執行檔，
+產生 sha256 checksums，並用 commit 訊息自動產生 release notes。
+
+```bash
+git tag -a v0.1.1 -m "描述這一版的變更" && git push origin v0.1.1
+```
+
+版本號取自 `git describe`，所以未打 tag 的建置會顯示 `dev`。介面還可能調整的階段建議維持 `0.x`。
 
 | 目錄 | 內容 |
 |---|---|

@@ -15,14 +15,16 @@ cover:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -func=coverage.out | tail -1
 
-# Static binaries for every platform in dist/.
+# Static binaries for every platform in dist/. File names carry no version so
+# that https://github.com/<owner>/<repo>/releases/latest/download/<name> keeps
+# working; the version is compiled in and shown by `cfl --version`.
 dist:
 	@mkdir -p dist
 	@for p in $(PLATFORMS); do \
 		os=$${p%/*}; arch=$${p#*/}; ext=; [ $$os = windows ] && ext=.exe; \
-		echo "dist/cfl-$$os-$$arch$$ext"; \
+		echo "dist/cfl_$$os"_"$$arch$$ext"; \
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -ldflags "$(LDFLAGS)" \
-			-o dist/cfl-$$os-$$arch$$ext ./cmd/cfl || exit 1; \
+			-o dist/cfl_$$os"_"$$arch$$ext ./cmd/cfl || exit 1; \
 	done
 
 clean:
