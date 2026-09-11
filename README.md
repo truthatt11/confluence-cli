@@ -15,18 +15,26 @@
 
 ### 下載執行檔（不需要 Go）
 
-把 `darwin_arm64` 換成你的平台：`darwin_amd64`、`linux_amd64`、`linux_arm64`、`windows_amd64.exe`、`windows_arm64.exe`。
+把下面的 `darwin_arm64` 換成你的平台：`darwin_amd64`、`linux_amd64`、`linux_arm64`、`windows_amd64.exe`、`windows_arm64.exe`。
 這個網址永遠指向最新版：
 
 ```bash
-curl -L -o cfl https://github.com/truthatt11/confluence-cli/releases/latest/download/cfl_darwin_arm64 && chmod +x cfl
+curl -LO https://github.com/truthatt11/confluence-cli/releases/latest/download/cfl_darwin_arm64
 ```
 
-下載後用 `./cfl --version` 確認版本。每個 release 附有 `checksums.txt`，可以驗證檔案完整性：
+驗證檔案完整性（檔名要保持原樣，`checksums.txt` 是以原始檔名記錄的）：
 
 ```bash
-sha256sum -c checksums.txt --ignore-missing
+curl -LO https://github.com/truthatt11/confluence-cli/releases/latest/download/checksums.txt && shasum -a 256 -c checksums.txt --ignore-missing
 ```
+
+Linux 沒有 `shasum` 時改用 `sha256sum -c checksums.txt --ignore-missing`。驗證通過後再改名並加上執行權限：
+
+```bash
+chmod +x cfl_darwin_arm64 && mv cfl_darwin_arm64 cfl && ./cfl --version
+```
+
+把 `cfl` 移到 `PATH` 裡的目錄（例如 `~/.local/bin` 或 `/usr/local/bin`）就能直接用。
 
 > **macOS 使用瀏覽器下載時**：未簽章的執行檔會被標記為隔離，第一次執行會被 Gatekeeper 擋下。
 > 用上面的 `curl` 指令不會有這個問題；若已經被擋，執行 `xattr -d com.apple.quarantine ./cfl` 即可。
