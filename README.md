@@ -54,6 +54,25 @@ make build    # 產生 bin/cfl
 make dist     # 產生 dist/ 下六個平台的執行檔（macOS、Linux、Windows × amd64/arm64）
 ```
 
+安裝到 `/usr/local/bin`（需要 sudo）：
+
+```bash
+make build && sudo make install
+```
+
+請先以一般身分執行 `make build`。`install` 只在原始碼有變更時才會重新編譯，
+所以這樣做可以避免以 root 身分編譯；以 root 編譯會在 repo 裡留下 root 擁有的 `bin/`，
+而且 sudo 會重設 `PATH`，通常根本找不到 `go`。
+
+不想用 sudo，就裝到自己的目錄（該目錄要在 `PATH` 裡）：
+
+```bash
+make install PREFIX=$HOME/.local
+```
+
+請寫 `$HOME` 而不是 `~`：zsh 不會展開參數裡 `=` 後面的 `~`，會在目前目錄建出一個名為 `~` 的資料夾。
+移除時用同樣的 `PREFIX` 執行 `make uninstall`。打包時可以用 `DESTDIR` 指定暫存根目錄。
+
 ## 設定
 
 1. 在 Confluence 建立 Personal Access Token：右上角頭像 → 設定 → Personal Access Tokens

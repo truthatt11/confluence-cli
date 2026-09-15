@@ -1,11 +1,31 @@
 VERSION   ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS   := -s -w -X main.version=$(VERSION)
+GOBUILD   := go build -trimpath -ldflags "$(LDFLAGS)"
+SOURCES   := $(shell find cmd internal skill -type f) go.mod go.sum
 PLATFORMS := darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64 windows/arm64
+PREFIX    ?= /usr/local
+BINDIR    ?= $(PREFIX)/bin
 
-.PHONY: build test cover dist clean
+.PHONY: build install uninstall test cover dist clean
 
+# Always rebuilds, so a newly created tag's version is picked up.
 build:
-	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/cfl ./cmd/cfl
+	$(GOBUILD) -o bin/cfl ./cmd/cfl
+
+# Rebuilt only when a source changed. That keeps `make build && sudo make install`
+# from compiling as root, which would leave a root-owned bin/ behind and usually
+# fails anyway because sudo resets PATH and cannot find go.
+bin/cfl: $(SOURCES)
+	$(GOBUILD) -o $@ ./cmd/cfl
+
+# Installs to $(PREFIX)/bin, /usr/local/bin by default. Without sudo:
+#   make install PREFIX=$HOME/.local
+install: bin/cfl
+	install -d "$(DESTDIR)$(BINDIR)"
+	install -m 0755 bin/cfl "$(DESTDIR)$(BINDIR)/cfl"
+
+uninstall:
+	rm -f "$(DESTDIR)$(BINDIR)/cfl"
 
 test:
 	go vet ./...
@@ -23,8 +43,7 @@ dist:
 	@for p in $(PLATFORMS); do \
 		os=$${p%/*}; arch=$${p#*/}; ext=; [ $$os = windows ] && ext=.exe; \
 		echo "dist/cfl_$$os"_"$$arch$$ext"; \
-		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -ldflags "$(LDFLAGS)" \
-			-o dist/cfl_$$os"_"$$arch$$ext ./cmd/cfl || exit 1; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch $(GOBUILD) -o dist/cfl_$$os"_"$$arch$$ext ./cmd/cfl || exit 1; \
 	done
 
 clean:
